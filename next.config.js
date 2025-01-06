@@ -5,9 +5,7 @@ const nextConfig = {
     },
     eslint: {
       ignoreDuringBuilds: true
-    },
-    // Add this to ensure env validation runs
-    env: require('./src/env.js').env
+    }
   }
 
   module.exports = nextConfig
