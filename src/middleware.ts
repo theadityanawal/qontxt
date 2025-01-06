@@ -1,42 +1,52 @@
-// middleware.ts - Route Protection
+// src/middleware.ts
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { adminAuth } from '@/lib/firebase/admin';
+import { validateSession } from '@/lib/auth-utils';
 
-/**
- * Middleware function to handle authentication using Firebase Admin SDK
- *
- * @param request - The incoming Next.js request object containing client information
- * @returns A NextResponse object that either:
- *          - Redirects to login page if no session exists
- *          - Allows request to proceed if session is valid
- *          - Redirects to login page if session verification fails
- *
- * @remarks
- * This middleware:
- * 1. Checks for session cookie in the request
- * 2. If no session exists, redirects to login page
- * 3. Attempts to verify the session cookie using Firebase Admin
- * 4. If verification succeeds, allows request to proceed
- * 5. If verification fails, redirects to login page
- *
- * @throws Will catch and handle any errors during session verification
- */
+// Add routes that don't require authentication
+const publicRoutes = [
+  '/login',
+  '/signup',
+  '/reset-password',
+  '/_next',
+  '/api/auth',
+  '/favicon.ico',
+];
+
 export async function middleware(request: NextRequest) {
-  const session = request.cookies.get('session');
+  // Check if the route is public
+  const isPublicRoute = publicRoutes.some(route =>
+    request.nextUrl.pathname.startsWith(route)
+  );
 
-  if (!session) {
-    return NextResponse.redirect(new URL('/login', request.url));
-  }
-
-  try {
-    await adminAuth.verifySessionCookie(session.value);
+  if (isPublicRoute) {
     return NextResponse.next();
-  } catch (error) {
-    return NextResponse.redirect(new URL('/login', request.url));
   }
+
+  const { isAuthenticated } = await validateSession();
+
+  // If not authenticated, redirect to login
+  if (!isAuthenticated) {
+    const loginUrl = new URL('/login', request.url);
+    loginUrl.searchParams.set('from', request.nextUrl.pathname);
+    return NextResponse.redirect(loginUrl);
+  }
+
+  return NextResponse.next();
 }
 
+// Specify which routes should trigger the middleware
 export const config = {
-  matcher: ['/home/:path*']
-}
+  matcher: [
+    /*
+     * Match all request paths except:
+     * 1. Matches any path starting with:
+     *  - api/auth (authentication API routes)
+     *  - _next/static (static files)
+     *  - _next/image (image optimization files)
+     *  - favicon.ico (favicon file)
+     * 2. public routes defined above
+     */
+    '/((?!api/auth|_next/static|_next/image|favicon.ico).*)',
+  ],
+};
