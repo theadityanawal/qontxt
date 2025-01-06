@@ -1,7 +1,7 @@
 // middleware.ts - Route Protection
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { adminAuth } from '@/lib/firebase/config-admin';
+import { adminAuth } from '@/lib/firebase/admin';
 
 /**
  * Middleware function to handle authentication using Firebase Admin SDK
