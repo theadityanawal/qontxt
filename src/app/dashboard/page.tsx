@@ -1,3 +1,4 @@
+'use client'; // Add this directive at the top
 import AuthButton from '@/components/AuthButton';
 
 export default function DashboardPage() {
