@@ -1,0 +1,25 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Users can only manage their own document
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+
+    // Resumes collection rules
+    match /resumes/{resumeId} {
+      allow create: if request.auth != null;
+      allow read, update, delete: if request.auth.uid == resource.data.user_id;
+
+      // Subcollection inheritance
+      match /{document=**} {
+        allow read, write: if request.auth.uid == get(/databases/$(database)/documents/resumes/$(resumeId)).data.user_id;
+      }
+    }
+
+    // Allow users to create their own user document
+    match /users/{userId} {
+      allow create: if request.auth.uid == userId;
+    }
+  }
+}
