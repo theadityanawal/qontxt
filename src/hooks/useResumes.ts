@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { collection, query, where, onSnapshot } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
-import type { Resume } from '@/types/collections';
+import type { Resume } from '@/types/resume';
 
 export function useResumes(userId: string) {
   const [resumes, setResumes] = useState<Resume[]>([]);

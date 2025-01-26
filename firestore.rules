@@ -1,25 +1,53 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Users can only manage their own document
+    // User document rules
     match /users/{userId} {
       allow read, write: if request.auth != null && request.auth.uid == userId;
     }
 
-    // Resumes collection rules
+    // Resume document rules
     match /resumes/{resumeId} {
+      // Create: Any authenticated user
       allow create: if request.auth != null;
-      allow read, update, delete: if request.auth.uid == resource.data.user_id;
 
-      // Subcollection inheritance
-      match /{document=**} {
-        allow read, write: if request.auth.uid == get(/databases/$(database)/documents/resumes/$(resumeId)).data.user_id;
+      // Read/Update/Delete: Only resume owner
+      allow read, update, delete: if isOwner(resumeId);
+
+      // Section documents rules (inherits parent permissions)
+      match /{section}/{documentId} {
+        allow read, write: if isValidSectionRequest(resumeId, section);
       }
     }
 
-    // Allow users to create their own user document
-    match /users/{userId} {
-      allow create: if request.auth.uid == userId;
+    // Helper functions
+    function isOwner(resumeId) {
+      return request.auth != null &&
+        getResumeUserId(resumeId) == request.auth.uid;
+    }
+
+    function getResumeUserId(resumeId) {
+      return get(/databases/$(database)/documents/resumes/$(resumeId)).data.user_id;
+    }
+
+    function isValidSectionRequest(resumeId, section) {
+      return isOwner(resumeId) &&
+        section in ['personal_info', 'work_experience', 'education',
+                   'projects', 'skills', 'certifications', 'languages'];
+    }
+
+    // Validation functions
+    function isValidDateRange(start, end) {
+      return end == null || start <= end;
+    }
+
+    function isValidProficiency(value) {
+      return value >= 1 && value <= 5;
+    }
+
+    function isValidSocialLink(link) {
+      return link.keys().hasAll(['platform', 'url']) &&
+        link.platform in ['LinkedIn', 'GitHub', 'Portfolio', 'Other'];
     }
   }
 }
