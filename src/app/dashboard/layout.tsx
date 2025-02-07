@@ -1,11 +1,15 @@
+'use client';
+import { withAuth } from '@/lib/auth';
 import { ReactNode } from 'react';
-import ProtectedRoute from '@/components/ProtectedRoute';
 
-// Server Component (no client-side code)
-export default function DashboardLayout({ children }: { children: ReactNode }) {
+function DashboardLayout({ children }: { children: ReactNode }) {
   return (
-    <ProtectedRoute>
-      {children}
-    </ProtectedRoute>
+    <div className="min-h-screen bg-background">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {children}
+      </div>
+    </div>
   );
 }
+
+export default withAuth(DashboardLayout);

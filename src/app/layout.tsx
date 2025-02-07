@@ -1,7 +1,8 @@
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
-import '../styles/globals.css';
-import { AuthProvider } from '@/context/auth-context';
+import './globals.css';
+import { AuthProvider } from '@/lib/auth';
+import { Suspense } from 'react';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -16,10 +17,16 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body className={inter.className}>
         <AuthProvider>
-          {children}
+          <Suspense fallback={
+            <div className="min-h-screen flex items-center justify-center">
+              <div className="w-16 h-16 border-4 border-primary/30 border-t-primary rounded-full animate-spin" />
+            </div>
+          }>
+            {children}
+          </Suspense>
         </AuthProvider>
       </body>
     </html>
