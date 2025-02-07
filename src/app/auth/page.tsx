@@ -41,7 +41,7 @@ export default function AuthPage() {
 
   const FeatureCard = ({ feature, index, isMobile = false }) => (
     <div
-      className={`relative p-6 bg-background/50 backdrop-blur-sm rounded-lg border border-primary/10 transition-all duration-300 ${
+      className={`relative p-6 bg-background/50 backdrop-blur-xs rounded-lg border border-primary/10 transition-all duration-300 ${
         isMobile ? '' : 'hover:scale-105 hover:border-primary/30 hover:shadow-lg hover:shadow-primary/5'
       }`}
       onMouseEnter={() => !isMobile && setHoveredFeature(index)}
@@ -70,12 +70,12 @@ export default function AuthPage() {
   );
 
   return (
-    <div className="min-h-screen flex flex-col lg:flex-row bg-gradient-to-b from-background to-background/95">
+    <div className="min-h-screen flex flex-col lg:flex-row bg-linear-to-b from-background to-background/95">
       {/* Left Section */}
       <div className="flex-1 flex flex-col justify-center items-center px-4 sm:px-6 lg:px-8 py-8 animate-in slide-in-from-left duration-500">
         <div className="max-w-md w-full space-y-8">
           <div className="text-center">
-            <h1 className="text-4xl font-bold tracking-tight bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent animate-in fade-in duration-700">
+            <h1 className="text-4xl font-bold tracking-tight bg-linear-to-r from-primary to-primary/70 bg-clip-text text-transparent animate-in fade-in duration-700">
               Welcome to qontxt
             </h1>
             <p className="mt-4 text-lg text-muted-foreground animate-in fade-in duration-1000">
