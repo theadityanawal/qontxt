@@ -1,6 +1,6 @@
 import { NextRequest } from 'next/server';
-import { auth } from '@/lib/firebase-admin';
-import { settings } from '@/lib/settings';
+import { auth } from '@/lib/services/auth/firebase.admin';
+import { settings } from '@/lib/services/settings/settings.service';
 import { UserSettingsSchema } from '@/types/settings';
 import { z } from 'zod';
 
@@ -97,3 +97,4 @@ export async function PATCH(req: NextRequest) {
     );
   }
 }
+

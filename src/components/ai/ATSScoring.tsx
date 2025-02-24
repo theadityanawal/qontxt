@@ -2,9 +2,9 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '../ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
-import { AIAnalysisResult } from '@/types/api.types';
+import { AIAnalysisResult } from '@/types/api';
 import { Button } from '@/components/ui/button';
-import { type ATSScore } from '@/lib/ai-utils';
+import { type ATSScore } from '@/lib/services/ai/ai-utils';
 
 export interface ATSScoringProps {
   score: ATSScore;
@@ -111,3 +111,4 @@ function FeedbackSection({
     </div>
   );
 }
+

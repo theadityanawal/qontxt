@@ -5,3 +5,4 @@ export { JobParser } from './JobParser';
 // Export types
 export type { ATSScoringProps } from './ATSScoring';
 export type { JobParserProps } from './JobParser';
+

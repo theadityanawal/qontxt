@@ -85,3 +85,4 @@ export const TIER_LIMITS: Record<UserTier, { aiRequests: number }> = {
   free: { aiRequests: 25 },
   pro: { aiRequests: 250 }
 };
+

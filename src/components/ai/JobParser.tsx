@@ -95,3 +95,4 @@ export function JobParser({ jobDescription, onParseComplete }: JobParserProps) {
     </Card>
   );
 }
+

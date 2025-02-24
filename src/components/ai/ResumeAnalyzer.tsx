@@ -121,3 +121,4 @@ function SkillSection({ title, items }: { title: string; items: string[] }) {
     </div>
   );
 }
+

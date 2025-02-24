@@ -167,3 +167,4 @@ export const config = {
 export const config = {
   matcher: [...PROTECTED_ROUTES, ...authRoutes]
 }
+

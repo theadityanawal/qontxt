@@ -1,15 +1,15 @@
 import { NextRequest } from 'next/server';
-import { auth } from '@/lib/firebase-admin';
-import { rateLimit } from '@/lib/rate-limit';
-import { metrics } from '@/lib/metrics';
-import { redis } from '@/lib/redis';
-import { ai } from '@/lib/ai/ai.service';
-import { settings } from '@/lib/settings';
+import { auth } from '@/lib/services/auth/firebase.admin';
+import { rateLimit } from '@/lib/services/rate-limit.service';
+import { metrics } from '@/lib/services/metrics.service';
+import { redis } from '@/lib/services/redis.service';
+import { ai } from '@/lib/services/ai/ai.service';
+import { settings } from '@/lib/services/settings/settings.service';
 import {
   AnalyzeRequestSchema,
   AnalyzeResponse,
   ErrorResponse
-} from '@/types/api.types';
+} from '@/types/api';
 import { TIER_LIMITS } from '@/types/settings';
 
 export const runtime = 'edge';
@@ -149,3 +149,4 @@ function createErrorResponse(
   if (details) error.details = details;
   return Response.json(error, { status });
 }
+

@@ -218,3 +218,4 @@ export const config = {
     ...protectedRoutes.map(route => route + '/:path*'),
   ]
 };
+

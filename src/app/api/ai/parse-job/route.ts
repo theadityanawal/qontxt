@@ -1,10 +1,10 @@
 import { AIService } from '@/lib/ai/ai.service';
-import { auth } from '@/lib/firebase-admin';
+import { auth } from '@/lib/services/auth/firebase.admin';
 import { NextRequest } from 'next/server';
 import { z } from 'zod';
-import { rateLimit } from '@/lib/rate-limit';
-import { metrics } from '@/lib/metrics';
-import { redis } from '@/lib/redis';
+import { rateLimit } from '@/lib/services/rate-limit.service';
+import { metrics } from '@/lib/services/metrics.service';
+import { redis } from '@/lib/services/redis.service';
 
 const aiService = AIService.getInstance();
 
@@ -282,3 +282,4 @@ export async function POST(req: NextRequest) {
     );
   }
 }
+
