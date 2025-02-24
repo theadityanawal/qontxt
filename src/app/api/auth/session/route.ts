@@ -1,13 +1,17 @@
-import { adminAuth, verifySessionCookie, revokeUserSessions } from '@/lib/firebase-admin';
-import { cookies, headers } from 'next/headers';
 import { NextResponse } from 'next/server';
 import { ResponseCookie } from 'next/dist/compiled/@edge-runtime/cookies';
 import type { NextRequest } from 'next/server';
+import { cookies, headers } from 'next/headers';
+import { adminAuth, verifySessionCookie, revokeUserSessions } from '@/lib/firebase-admin';
 
-const protectedRoutes = ['/dashboard', '/resume'];
-const authRoutes = ['/auth'];
+const PROTECTED_ROUTES = ['/dashboard', '/resume'];
+const AUTH_ROUTES = ['/auth'];
 
 // CSRF protection
+/**
+ * Validates the CSRF token by checking the origin and host headers.
+ * Throws an error if the validation fails.
+ */
 const validateCSRFToken = (request: Request) => {
   const headersList = headers();
   const origin = headersList.get('origin');
@@ -26,12 +30,32 @@ const validateCSRFToken = (request: Request) => {
   }
 }
 
-export async function POST(request: Request) {
+/**
+ * Handles the creation of a session cookie from an ID token.
+ * This function expects a JSON body with a `token` field.
+ * It verifies the token, creates a session cookie, and sets it in the response.
+ */
+export async function POST(request: NextRequest) {
   try {
-    validateCSRFToken(request);
+    validateCSRFToken();
 
-    const { token } = await request.json();
+    let token;
+    validateCSRFToken(request);
+      const body = await request.json();
+      token = body.token;
+    } catch (error) {
+      return NextResponse.json({ error: 'Invalid request body' }, { status: 400 });
+    }
+
     const expiresIn = 60 * 60 * 24 * 5; // 5 days in seconds
+
+    const cookieOptions: Partial<ResponseCookie> = {
+      expires: new Date(Date.now() + expiresIn * 1000),
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      path: '/',
+    };
 
     // First verify the ID token
     try {
@@ -42,14 +66,6 @@ export async function POST(request: Request) {
 
       // Create a session cookie
       const sessionCookie = await adminAuth.createSessionCookie(token, { expiresIn });
-
-      const cookieOptions: Partial<ResponseCookie> = {
-        expires: new Date(Date.now() + expiresIn * 1000),
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
-        path: '/',
-      };
 
       const cookieStore = cookies();
       cookieStore.set('session', sessionCookie, cookieOptions);
@@ -63,7 +79,14 @@ export async function POST(request: Request) {
     console.error('Session error:', error);
     return NextResponse.json(
       { error: 'Invalid request' },
-      { status: error instanceof Error && error.message === 'Invalid origin' ? 403 : 500 }
+/**
+ * Handles the deletion of the session cookie and revokes the user's session.
+ * This function is typically called when a user logs out.
+ *
+ * @param request - The incoming request object.
+ * @returns A JSON response indicating the success or failure of the operation.
+ */
+export async function DELETE(request: Request) {
     );
   }
 }
@@ -88,7 +111,12 @@ export async function DELETE(request: Request) {
 
     cookieStore.delete('session');
 
-    return NextResponse.json({ status: 'success' });
+/**
+ * Middleware to protect routes and handle session validation.
+ * Redirects to the authentication page if the session is invalid or missing.
+ * Allows access to protected routes only if the session is valid.
+ */
+export async function middleware(request: NextRequest) {
   } catch (error) {
     console.error('Session deletion error:', error);
     return NextResponse.json({ error: 'Invalid request' }, { status: 403 });
@@ -102,7 +130,7 @@ export async function middleware(request: NextRequest) {
   const session = request.cookies.get('session')?.value;
 
   // Windows path compatibility
-  const isProtected = protectedRoutes.some(route =>
+  const isProtected = PROTECTED_ROUTES.some(route =>
     pathname.startsWith(route.replace(/\\/g, '/'))
   );
 
@@ -122,16 +150,20 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  if (authRoutes.includes(pathname) && session) {
+  if (AUTH_ROUTES.includes(pathname) && session) {
     const decodedClaims = await verifySessionCookie(session);
     if (decodedClaims) {
-      return NextResponse.redirect(new URL('/dashboard', request.url));
-    }
-  }
+const authRoutes = AUTH_ROUTES;
+
+// Configuration object for route matching
+// This ensures that the middleware is applied to the specified routes
+export const config = {
+  matcher: [...PROTECTED_ROUTES, ...AUTH_ROUTES]
+}
 
   return NextResponse.next();
 }
 
 export const config = {
-  matcher: [...protectedRoutes, ...authRoutes]
+  matcher: [...PROTECTED_ROUTES, ...authRoutes]
 }

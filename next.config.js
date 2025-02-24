@@ -6,9 +6,6 @@ const nextConfig = {
   },
   typescript: {
     ignoreBuildErrors: true, // Temporary for learning
-  },
-  experimental: {
-    instrumentationHook: true, // For better monitoring
   }
 }
 

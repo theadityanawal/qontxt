@@ -632,7 +632,153 @@ const monitorErrors = async (
 };
 ```
 
-## Testing & Quality Assurance
+## Project Structure & Organization (AKA "Where Did I Put That Code?")
+
+### Directory Organization (The "Please Don't Put Everything in `src`" Edition)
+```typescript
+// CORRECT ✅ - Feature-based AI organization
+/src
+  /lib
+    /ai
+      /prompts        // Because hardcoding prompts is so 2023
+      /generators     // The "make resume pretty" department
+      /analyzers      // The "what does this job want" detectives
+      /validators     // The "is this real or hallucinated" police
+      index.ts        // The public face of our AI chaos
+
+// WRONG ❌ - The "I'll Clean It Later" Special
+/src
+  aiStuff.ts         // The junk drawer of AI
+  moreAiStuff.ts     // The sequel nobody asked for
+  evenMoreAi.ts      // The trilogy continues
+  pleaseStop.ts      // The final chapter (narrator: it wasn't)
+```
+
+### File Naming & Component Structure
+
+```typescript
+// CORRECT ✅ - Clear component boundaries
+// AIResumeGenerator.tsx
+export interface AIResumeGeneratorProps {
+  baseResume: Resume;
+  jobDescription: string;
+  onGenerate: (result: GenerationResult) => void;
+  onError: (error: AIError) => void;
+}
+
+// WRONG ❌ - The "It Works On My Machine" Component
+// BigComponentThatDoesSomething.tsx
+export default function ThisComponentNeedsSleep(
+  props: any // "I'll type this later"
+) {
+  // 500 lines of unorganized chaos
+  return <div>{/* Trust me, it works */}</div>;
+}
+```
+
+### Service Pattern Implementation
+
+```typescript
+// CORRECT ✅ - The "I Actually Care About Architecture" Approach
+export class AIGenerationService {
+  private readonly openai: OpenAIApi;
+  private readonly cache: AIResponseCache;
+  private readonly validator: ContentValidator;
+
+  constructor(
+    openai: OpenAIApi,
+    cache: AIResponseCache,
+    validator: ContentValidator
+  ) {
+    this.openai = openai;
+    this.cache = cache;
+    this.validator = validator;
+  }
+
+  // Methods that won't make future you cry
+}
+
+// WRONG ❌ - The "Global Variables Are My Friends" Pattern
+let globalAIInstance: any; // What could go wrong?
+export const doSomeAIStuff = async () => {
+  if (!globalAIInstance) {
+    globalAIInstance = new OpenAIApi(); // YOLO initialization
+  }
+  return globalAIInstance.doMagic(); // Magic = undefined is not a function
+};
+```
+
+### State Management (Because Global Variables Are Not State Management)
+
+```typescript
+// CORRECT ✅ - Proper state isolation
+const useAIGeneration = (config: AIConfig) => {
+  const [state, dispatch] = useReducer(aiReducer, initialState);
+  const service = useAIService(config);
+
+  // Actually handling state like adults
+  return {
+    state,
+    generate: async () => {
+      dispatch({ type: 'START_GENERATION' });
+      try {
+        const result = await service.generate();
+        dispatch({ type: 'GENERATION_SUCCESS', payload: result });
+      } catch (error) {
+        dispatch({ type: 'GENERATION_ERROR', payload: error });
+      }
+    }
+  };
+};
+
+// WRONG ❌ - The "State? What State?" Approach
+let lastGeneratedResume: any; // The ghost of Christmas past
+const globalErrorList = []; // The list of shame
+```
+
+### API Route Organization (Because REST Isn't Just for Naps)
+
+```typescript
+// CORRECT ✅ - The "I Read The REST Documentation" Layout
+/api
+  /ai
+    /analyze
+      route.ts       // POST /api/ai/analyze
+      schema.ts      // Zod schema that actually validates
+      types.ts       // Types that make TypeScript happy
+    /generate
+      route.ts       // POST /api/ai/generate
+      schema.ts      // More validation (yes, we need it)
+      types.ts       // Even more types (keep TypeScript happy)
+
+// WRONG ❌ - The "REST Is Just Suggestions" Layout
+/api
+  allTheThings.ts    // One file to rule them all
+  misc.ts            // The "I'll organize this later" file
+  temp.ts            // Temporary (added 2 years ago)
+```
+
+### Testing Strategy (Because "It Works On My Machine" Isn't a Test)
+
+```typescript
+// CORRECT ✅ - Tests that actually test things
+describe('AIGenerationService', () => {
+  it('should handle hallucinated PhDs gracefully', async () => {
+    const service = new AIGenerationService();
+    const result = await service.generate({
+      education: 'Bootcamp graduate'
+    });
+    expect(result.degrees).not.toContain('PhD in Everything');
+  });
+});
+
+// WRONG ❌ - The "Testing Is Optional" Approach
+test('it works', () => {
+  expect(true).toBe(true); // Ship it! 🚢
+});
+```
+
+## Testing & Quality Assurance (Because "Works on My Machine" Isn't a Quality Strategy)
 
 ```typescript
 interface AITestCase {
@@ -647,6 +793,74 @@ interface AITestCase {
     contentLength: ContentLengthRules;
   };
 }
+```
+
+## Project Structure (The "Everything Has Its Place" Edition)
+### Directory Layout
+```
+/src
+  /app
+    /api
+      /ai
+        /analyze
+          route.ts           # Because raw text analysis is so 2023
+          schema.ts          # Zod: The bouncer at our API club
+          types.ts           # TypeScript's favorite hangout
+        /generate
+          route.ts          # Where the resume magic happens
+          schema.ts         # Input validation (trust no one)
+          types.ts          # More types (keep that TS compiler happy)
+    /dashboard
+      /ai-lab              # Where resumes go to get enhanced
+        page.tsx           # The UI that makes HR people smile
+        loading.tsx        # Because users hate waiting
+        error.tsx         # When AI has an existential crisis
+
+  /components
+    /ai                   # The "Make My Resume Shine" Department
+      /analyzers
+        JobParser.tsx     # Figures out what the job actually wants
+        SkillMatcher.tsx  # Matches skills (not hopes and dreams)
+        ATSScorer.tsx     # Makes robots love your resume
+      /generators
+        ResumeEnhancer.tsx   # Turns "helped with stuff" into achievement gold
+        BulletOptimizer.tsx  # Because bullet points need love too
+      /validation
+        ContentChecker.tsx   # The "Is This Real?" department
+
+    /ui                   # shadcn/ui's luxury apartment
+      /alerts            # For when things go wrong (they will)
+      /cards             # Beautiful containers of content
+      /progress         # Loading spinners galore
+
+  /lib
+    /ai
+      /core              # The brain of the operation
+        constants.ts     # Magic numbers live here
+        types.ts         # Type definitions (lots of them)
+        config.ts        # Configuration (that nobody reads)
+
+      /services          # Where the real work happens
+        analyzer.service.ts   # Job description detective
+        generator.service.ts  # Resume enhancement scientist
+        validator.service.ts  # Reality check department
+
+      /prompts           # Prompt engineering masterpiece
+        templates/       # Because hardcoding prompts is so yesterday
+          analyze.ts     # Job analysis prompts
+          enhance.ts     # Resume enhancement prompts
+          validate.ts    # Content validation prompts
+
+      /utils            # The utility belt
+        tokenizer.ts    # Counts tokens (and dreams)
+        sanitizer.ts    # Keeps things clean
+        formatter.ts    # Makes things pretty
+
+    /resume             # Resume domain logic
+      /services
+        resume.service.ts    # CRUD with style
+        version.service.ts   # Because history matters
+        export.service.ts    # PDF generation magic
 ```
 
 Remember: The AI is your colleague who had too much coffee - enthusiastic but needs clear boundaries! 🤖☕

@@ -1,62 +1,154 @@
 'use client';
-import { useResumes } from '@/lib/resume';
+
+import { useAuth } from '@/lib/auth';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { ResumeAnalyzer } from '@/components/ai/ResumeAnalyzer';
+import {
+  HoverCard,
+  HoverCardContent,
+  HoverCardTrigger,
+} from "@/components/ui/hover-card"
 import Link from 'next/link';
 
 export default function DashboardPage() {
-  const { resumes, loading } = useResumes();
+  const { user } = useAuth();
 
-  if (loading) {
-    return (
-      <div className="animate-pulse space-y-4">
-        <div className="h-8 w-48 bg-gray-200 rounded" />
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {[1, 2, 3].map(i => (
-            <div key={i} className="h-32 bg-gray-200 rounded" />
-          ))}
-        </div>
-      </div>
-    );
-  }
+  const stats = [
+    {
+      title: 'Resume Score',
+      value: '85%',
+      description: 'Average ATS compatibility score',
+      action: 'Improve Score'
+    },
+    {
+      title: 'Job Matches',
+      value: '12',
+      description: 'Potential job matches found',
+      action: 'View Matches'
+    },
+    {
+      title: 'Resume Views',
+      value: '34',
+      description: 'Times your resume was viewed',
+      action: 'View Details'
+    }
+  ];
+
+  const recentActivity = [
+    {
+      title: 'Resume Updated',
+      description: 'Software Engineer Resume V2',
+      timestamp: '2 hours ago',
+      link: '/dashboard/resumes/1'
+    },
+    {
+      title: 'New Job Match',
+      description: 'Senior Frontend Developer at Tech Corp',
+      timestamp: '5 hours ago',
+      link: '/dashboard/jobs/1'
+    },
+    {
+      title: 'Resume Generated',
+      description: 'Product Manager Resume',
+      timestamp: '1 day ago',
+      link: '/dashboard/resumes/2'
+    }
+  ];
 
   return (
-    <main className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold">Your Resumes</h1>
-        <Link
-          href="/resume/new"
-          className="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90"
-        >
-          Create New Resume
-        </Link>
-      </div>
-
-      {resumes.length === 0 ? (
-        <div className="text-center py-12">
-          <p className="text-muted-foreground">No resumes yet. Create your first one!</p>
-        </div>
-      ) : (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {resumes.map(resume => (
-            <Link
-              key={resume.id}
-              href={`/resume/${resume.id}`}
-              className="p-4 border rounded-lg hover:border-primary transition-colors"
-            >
-              <h2 className="font-semibold mb-2">{resume.title}</h2>
-              <p className="text-sm text-muted-foreground">
-                Last updated: {resume.updatedAt.toLocaleDateString()}
-              </p>
-              <div className="mt-2">
-                <span className={`text-xs px-2 py-1 rounded-full ${
-                  resume.status === 'published' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'
-                }`}>
-                  {resume.status}
-                </span>
+    <div className="h-screen flex">
+      {/* Main Content */}
+      <div className="flex-1 overflow-auto">
+        <div className="container mx-auto py-8 px-4">
+          <div className="space-y-8">
+            {/* Welcome Section */}
+            <div className="flex justify-between items-start">
+              <div>
+                <h1 className="text-3xl font-bold tracking-tight">
+                  Welcome back{user?.displayName ? `, ${user.displayName}` : ''}
+                </h1>
+                <p className="text-muted-foreground mt-2">
+                  Here's what's happening with your resumes
+                </p>
               </div>
-            </Link>
-          ))}
+              <Button asChild>
+                <Link href="/dashboard/resumes/new">Create New Resume</Link>
+              </Button>
+            </div>
+
+            {/* Stats Grid */}
+            <div className="grid gap-4 md:grid-cols-3">
+              {stats.map((stat, i) => (
+                <HoverCard key={i}>
+                  <HoverCardTrigger asChild>
+                    <Card className="hover:shadow-lg transition-all">
+                      <CardHeader>
+                        <CardTitle className="text-lg">{stat.title}</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="text-3xl font-bold mb-2">{stat.value}</div>
+                        <p className="text-muted-foreground text-sm">
+                          {stat.description}
+                        </p>
+                        <Button variant="secondary" size="sm" className="mt-4">
+                          {stat.action}
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  </HoverCardTrigger>
+                  <HoverCardContent className="w-80">
+                    <div className="space-y-2">
+                      <h4 className="text-sm font-semibold">{stat.title} Details</h4>
+                      <p className="text-sm text-muted-foreground">
+                        Click to see detailed analytics and improvement suggestions.
+                      </p>
+                    </div>
+                  </HoverCardContent>
+                </HoverCard>
+              ))}
+            </div>
+
+            {/* Resume Analysis Section */}
+            <div>
+              <h2 className="text-xl font-semibold mb-4">Resume Analysis</h2>
+              {user && (
+                <ResumeAnalyzer
+                  userId={user.uid}
+                  baseResume={recentActivity[0]} // This should be replaced with actual resume data
+                />
+              )}
+            </div>
+
+            {/* Recent Activity */}
+            <div>
+              <h2 className="text-xl font-semibold mb-4">Recent Activity</h2>
+              <div className="grid gap-4">
+                {recentActivity.map((activity, i) => (
+                  <Link key={i} href={activity.link}>
+                    <Card className="hover:shadow-md transition-all">
+                      <CardContent className="flex justify-between items-center py-4">
+                        <div>
+                          <h3 className="font-medium">{activity.title}</h3>
+                          <p className="text-sm text-muted-foreground">
+                            {activity.description}
+                          </p>
+                        </div>
+                        <div className="flex items-center gap-4">
+                          <span className="text-sm text-muted-foreground">
+                            {activity.timestamp}
+                          </span>
+                          <Button variant="ghost" size="sm">View</Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          </div>
         </div>
-      )}
-    </main>
+      </div>
+    </div>
   );
 }
